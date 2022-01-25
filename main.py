@@ -208,5 +208,3 @@ while not gameExit:
     screen.blit(timelabel, (700, 2))
 
     pygame.display.update()
-
-pygame.QUIT()
