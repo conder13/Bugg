@@ -9,9 +9,10 @@ time_lapsed = 0
 
 pygame.init()
 
-font_obj = pygame.font.SysFont(None, 24, 0, 0)
+font_obj = pygame.font.SysFont(None, 100, 0, 0)
 you_lose = font_obj.render("You Died...", True, (250, 0, 0))
 you_win = font_obj.render("You Win! Your time was", True, (0, 250, 0))
+try_again = font_obj.render("Press Enter To Try Again", True, (250, 0, 0))
 
 clock = pygame.time.Clock()
 minutes = 0
@@ -63,7 +64,8 @@ for i in range(int(SCREEN_WIDTH / PIXEL_DIM) + 2):
         add_block(i, j)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
+lose_screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+win_screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 oversize = pygame.Surface((SCREEN_WIDTH + PIXEL_DIM * 2, SCREEN_HEIGHT + PIXEL_DIM * 2))
 gameExit = False
 
@@ -98,8 +100,6 @@ def drown():
     cbx = int(x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2) - 1
     cby = int(y + int((SCREEN_HEIGHT / PIXEL_DIM + 2) / 2))
     if block_map[(cbx, cby)].name == "water":
-        player_health_bar.set_level(player_health_bar.level - 1)
-        screen.blit(you_lose, (22, 0))
         return True
 
 
@@ -107,9 +107,7 @@ def win():
     cbx = int(x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2) - 1
     cby = int(y + int((SCREEN_HEIGHT / PIXEL_DIM + 2) / 2))
     if block_map[(cbx, cby)].name == "win":
-        screen.blit(you_win, (22, 0))
-        screen.blit(time_lapsed, (22, 10))
-        exit()
+
         return True
 
 
@@ -157,15 +155,21 @@ def prepare_map():
         for j in range(y, y + int(SCREEN_HEIGHT / PIXEL_DIM) + 2):
             if (i, j) not in block_map:
                 add_block(i, j)
-
+lose_game = False
+win_game = False
 
 player = Player(PIXEL_DIM, PIXEL_DIM)
 clock = pygame.time.Clock()
 player_health_bar = Health_bar()
 
-
-
+def lose():
+    while True:
+        screen.fill((250,0,0))
+        screen.blit(you_lose, (300,400))
 while not gameExit:
+    if player_health_bar.level < 1:
+        lose_game = True
+        gameExit = True
     screen.fill((0, 0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -179,16 +183,19 @@ while not gameExit:
     win()
 
     if frame_count % 20 == 0:
-        while drown():
+        if drown():
             player_health_bar.set_level(player_health_bar.level - 1)
 
+    if win():
+        screen.blit(you_win, (22, 0))
+        screen.blit(timelabel, (22, 10))
+        break
     frame_count += 1
 
     for i in range(int(SCREEN_WIDTH / PIXEL_DIM) + 2):
         for j in range(int(SCREEN_HEIGHT / PIXEL_DIM) + 2):
             oversize.blit(block_map[(x + i, y + j)].image, (PIXEL_DIM * i, PIXEL_DIM * j))
-    print(
-        f'x:{x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2}, xo:{xo}, y:{y + (SCREEN_HEIGHT / PIXEL_DIM + 2) / 2}, yo:{yo}, block:{block_map[int(x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2) - 1, y + int((SCREEN_HEIGHT / PIXEL_DIM + 2) / 2)].name}')
+        print(f'x:{x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2}, xo:{xo}, y:{y + (SCREEN_HEIGHT / PIXEL_DIM + 2) / 2}, yo:{yo}, block:{block_map[int(x + (SCREEN_WIDTH / PIXEL_DIM + 2) / 2) - 1, y + int((SCREEN_HEIGHT / PIXEL_DIM + 2) / 2)].name}')
     oversize.scroll(xo, yo)
     screen.blit(oversize, (-PIXEL_DIM, -PIXEL_DIM))
     screen.blit(player.image, (SCREEN_WIDTH / 2 - PIXEL_DIM / 2, SCREEN_HEIGHT / 2 - PIXEL_DIM / 2))
@@ -208,3 +215,22 @@ while not gameExit:
     screen.blit(timelabel, (700, 2))
 
     pygame.display.update()
+while gameExit:
+    print("1")
+    if lose_game:
+        print("2")
+        screen.fill((0,0,0))
+        screen.blit(you_lose, (100,250))
+        #screen.blit(try_again, (100,350))
+        pygame.display.update()
+        print("3")
+    if event.type == pygame.KEYDOWN:
+        print("4")
+        if event.key == pygame.K_ENTER:
+            print("5")
+            minutes = 0
+            seconds = 0
+            milliseconds = 0
+            block_map = {}
+            prepare_map()
+            gameExit = False
